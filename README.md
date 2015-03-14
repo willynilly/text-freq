@@ -15,7 +15,7 @@ WORD_FREQS_TO_STRING
 5) For example, suppose you have some text in cell A1 and an empty cell in B1, then
 in cell B1, type:
 
-=WORD_FREQS_TO_JSON(A1)_
+=WORD_FREQS_TO_JSON(A1)
 
 
 
