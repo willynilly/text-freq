@@ -1,5 +1,5 @@
 
-var _ = load();
+var _ = loadLodash();
 
 /**
  * Returns an array of tokens for a string
