@@ -1,5 +1,5 @@
 
-var _ = loadLodash();
+var _ = load();
 
 /**
  * Returns an array of tokens for a string
@@ -9,12 +9,10 @@ var _ = loadLodash();
  * @return {string[]} 
  */
 function WORD_TOKENS(text, delimiter) {
-  if (typeof text !== 'string') {
+  if (!_.isString(text)) {
     return [];
   }
-  if (delimiter === undefined) {
-    delimiter = ',';
-  }
+  delimiter = getDelimiterFromInput_(delimiter);
   var tokens = text.trim().toLowerCase().split(delimiter);
   tokens = _.filter(_.uniq(_.map(tokens, function(token){return token.trim();})), function(token) { return token !== null && token !== undefined && token !== ''}).sort(); 
   return tokens;
@@ -29,6 +27,7 @@ function WORD_TOKENS(text, delimiter) {
  * @return {Object} 
  */
 function WORD_FREQS(text, delimiter) {
+  delimiter = getDelimiterFromInput_(delimiter);
   var words = WORD_TOKENS(text, delimiter);
   var freqs = _.transform(words, function(result, word) {
     if (!(word in result)) {
@@ -42,15 +41,16 @@ function WORD_FREQS(text, delimiter) {
 /**
  * Returns word frequencies of a string as a comma separated string
  *
- * @param {string} text The string to be analyzed for word frequencies
+ * @param {string} text The string or 2d-array of cells containing strings to be analyzed for word frequencies
  * @param {string} the delimiter used for parsing.  By default it is a comma.
  * @param {string} the delimiter used for output.  By default it is a comma followed by a space.
  * @return {string} 
  */
 function WORD_FREQS_TO_STRING(text, inputDelimiter, outputDelimiter) {
-  if (outputDelimiter === undefined) {
-    outputDelimiter = ', ';
-  }
+  inputDelimiter = getDelimiterFromInput_(inputDelimiter, ',');
+  text = getTextFromInput_(text, inputDelimiter);
+  outputDelimiter = getDelimiterFromInput(outputDelimiter, ', ');
+ 
   var freqs = WORD_FREQS(text, inputDelimiter);
   return _.map(_.keys(freqs), function(word) {
     return word + ':' + freqs[word];
@@ -60,13 +60,15 @@ function WORD_FREQS_TO_STRING(text, inputDelimiter, outputDelimiter) {
 /**
  * Returns the sum of word frequencies for an array of target words for a string
  *
- * @param {string} text The string to be analyzed for word frequencies
+ * @param {string} text The string or 2d-array of cells containing strings to be analyzed for word frequencies
  * @param {string[]} targetWords  The words to search for and count
  * @param {string} the delimiter used for parsing.  By default it is a comma.
  * @return {string} 
  */
 function WORD_FREQS_SUM(text, targetWords, delimiter) {
-  if (typeof targetWords !== 'string') {
+  delimiter = getDelimiterFromInput_(delimiter);
+  text = getTextFromInput_(text, delimiter);
+  if (!_.isString(targetWords)) {
     return null;
   }
   targetWords = _.uniq(WORD_TOKENS(targetWords, delimiter));
@@ -82,15 +84,43 @@ function WORD_FREQS_SUM(text, targetWords, delimiter) {
 /**
  * Returns word frequencies of a string as a JSON string
  *
- * @param {string} text The string to be analyzed for word frequencies
+ * @param {string} text The string or 2d-array of cells containing strings to be analyzed for word frequencies
  * @param {string} the delimiter used for parsing.  By default it is a comma.
  * @param {string} the string used for spacing the JSON output string. By default it is a string composed of 4 spaces.
  * @return {string} 
  */
 function WORD_FREQS_TO_JSON(text, delimiter, spacing) {
+  delimiter = getDelimiterFromInput_(delimiter);
+  text = getTextFromInput_(text, delimiter);
+  if (text === null) {
+    return null;
+  }
   if (spacing === undefined) {
     spacing = '    ';
   }
   var freqs = WORD_FREQS(text, delimiter);
   return JSON.stringify(freqs, null, spacing);
+}
+
+function getDelimiterFromInput_(input, defaultDelimiter) {
+  if (defaultDelimiter === undefined) {
+    defaultDelimiter = ',';
+  }
+  var delimiter = input;
+  if (delimiter === undefined) {
+    delimiter = defaultDelimiter;
+  }
+  return delimiter;
+}
+
+function getTextFromInput_(input, delimiter) {
+  var text = null;
+  if (_.isArray(input)) {
+    text = _.map(input, function(textArray) {
+      return textArray.join(delimiter);
+    }).join(delimiter);
+  } else if (_.isString(input)) {
+    text = input;
+  }
+  return text;
 }
